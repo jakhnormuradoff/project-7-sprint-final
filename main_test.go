@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCafeNegative(t *testing.T) {
@@ -67,14 +68,14 @@ func TestCafeCount(t *testing.T) {
 		req := httptest.NewRequest("GET", v.url, nil)
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusOK, response.Code)
-		splittedSlc := strings.Split(response.Body.String(), ",")
-
-		if splittedSlc[0] != "" {
-			v.count = len(splittedSlc)
+		require.Equal(t, http.StatusOK, response.Code)
+		gotCount := 0
+		if len(response.Body.String()) != 0{
+			splittedSlc := strings.Split(response.Body.String(), ",")
+			gotCount = len(splittedSlc)
 		}
 
-		assert.Equal(t, v.count, v.want)
+		assert.Equal(t, v.want, gotCount)
 	}
 }
 
@@ -96,7 +97,7 @@ func TestCafeSearch(t *testing.T) {
 
 		handler.ServeHTTP(response, req)
 
-		assert.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, http.StatusOK, response.Code)
 
 		respToLower := strings.ToLower(response.Body.String())
 		searchToLower := strings.ToLower(v.search)
@@ -104,8 +105,10 @@ func TestCafeSearch(t *testing.T) {
 		respSlc := strings.Split(respToLower, ",")
 		searchSlc := strings.Split(searchToLower, ",")
 
-		for _, v := range searchSlc {
-			assert.Contains(t, respSlc, v)
+		assert.Equal(t,len(respSlc), len(searchSlc)) 
+			for _, v := range searchSlc {
+				assert.Contains(t, respSlc, v)
+			}
 		}
 	}
-}
+
